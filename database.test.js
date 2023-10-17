@@ -16,7 +16,7 @@ describe('MySQL Database Connection', () => {
       const connection = await mysql.createConnection(dbConfig);
 
       // The following line will throw an error if the connection fails
-      await connection.connect();
+      await connection.connect(); 
       
       console.log('Connected to MySQL');
       

@@ -3,3 +3,5 @@
 /workspace.xml
 /config/
 /node_modules/
+/node_modules/env-cmd/
+/node_modules/mysql2/
