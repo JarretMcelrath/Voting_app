@@ -138,7 +138,7 @@ app.post("/register", async (req, res) => {
 
     db.getConnection( async (err, connection) => {
         if(err) throw (err)
-        const sqlInsert = "INSERT INTO user (voter_id, name, age, address, zip, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const sqlInsert = "INSERT INTO users (voter_id, name, age, address, zip, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         const insert_query = mysql.format(sqlInsert,[randomID, userName, age, address, zip, drLic, passport, email, currentDateTime, role, status, hashedPassword]);
         await connection.query (insert_query, (err, result)=> {
             connection.release()
@@ -203,7 +203,7 @@ app.post('/approveUser', async (req, res) => {
         to: userEmail_voter_ID[0].email,
         subject: 'Your account has been approved',
         html: `<h3>Hi ${req.body.userName} </h3><br>
-        <p>Your account has been approved<h4><br>Your Voter ID is:${req.body.voterId}, You can now login and Vote..</b></h4></p>`,
+        <p>Your account has been approved<h4><br>Your Voter ID is: ${req.body.voterId}, You can now login and Vote.</b></h4></p>`,
         //text: 'Congratulations, your account has been approved!'
     };
 
