@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-primary">Admin Page</h1>
+        <h2 class="mt-4 mb-4">User Data</h2>
+        <% if (users.length === 0) { %>
+            <p>No new user requests</p>
+        <% } else { %>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">User Name</th>
+                        <th scope="col">Voter ID</th>
+                        <th scope="col">Age</th>
+                        <th scope="col">Email Address</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Documentation</th>
+                        <th scope="col">Zip</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td><%= user.name %></td>
+                            <td><%= user.voter_id %></td>
+                            <td><%= user.age %></td>
+                            <td><%= user.email %></td>
+                            <td><%= user.address %></td>
+                            <td><%= user.passport ? user.passport : user.driving %></td> 
+                            <td><%= user.zip %></td>
+                            <td><%= user.role %></td>
+                            <td>
+                                <button class="btn btn-success approve-btn" data-voter-id="<%= user.voter_id %>" data-name="<%= user.name %>">Approve</button>
+                                <button class="btn btn-danger">Deny</button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+    $('.approve-btn').click(function() {
+        const voterId = $(this).data('voter-id');
+        const userName = $(this).data('name');
+
+        $.ajax({
+            url: '/approveUser',
+            type: 'POST',
+            data: { voterId: voterId, userName: userName },
+            success: function() {
+                // Remove the user's row from the table
+                $(`button[data-voter-id="${voterId}"]`).parent().parent().remove();
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

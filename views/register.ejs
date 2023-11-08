@@ -32,16 +32,36 @@
                 <label for="zip">Zip Code:</label>
                 <input type="text" class="form-control" name="zip" id="zip" placeholder="Enter your ZIP code" required>
             </div>
-            <!-- Driving License -->
+
             <div class="form-group">
+                <label for="documentType">Document Type:</label>
+                <select class="form-control" id="documentType" name="documentType">
+                    <option value="license">Driving License</option>
+                    <option value="passport">Passport</option>
+                </select>
+            </div>
+            
+            <!-- Driving License -->
+            <div class="form-group" id="licenseDiv">
+                <label for="license">Driving License:</label>
+                <input type="text" class="form-control" name="driving" id="license" placeholder="Enter your driving license number" required>
+            </div>
+            
+            <!-- Passport -->
+            <div class="form-group" id="passportDiv" style="display: none;">
+                <label for="passport">Passport:</label>
+                <input type="text" class="form-control" name="passport" id="passport" placeholder="Enter your passport number" required>
+            </div>
+            <!-- Driving License -->
+            <!-- <div class="form-group">
                 <label for="license">Driving License:</label>
                 <input type="text" class="form-control" name="driving" id="license" placeholder="Enter your driving license number" required>
             </div>
             <!-- Passport -->
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <label for="passport">Passport:</label>
                 <input type="text" class="form-control" name="passport" id="passport" placeholder="Enter your passport number" required>
-            </div>
+            </div> -->
             <!-- Email ID -->
             <div class="form-group">
                 <label for="email">Email ID:</label>
@@ -53,18 +73,39 @@
                 <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password" required>
             </div>
             
-            <button type="submit" class="btn btn-primary">Register</button>           
-            
-            <div class="text-center">
-                <p>Already have an account? <a href="/login">Login</a></p>
-            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
 
         </form>
+
+        <div class="text-center">
+            <p>Already have an account? <a href="/login">Login</a></p>
+        </div>
+
     </div>
     
     <!-- Include Bootstrap JS and jQuery libraries -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('documentType').addEventListener('change', function() {
+            var licenseDiv = document.getElementById('licenseDiv');
+            var passportDiv = document.getElementById('passportDiv');
+            var licenseInput = document.getElementById('license');
+            var passportInput = document.getElementById('passport');
+    
+            if (this.value === 'license') {
+                licenseDiv.style.display = 'block';
+                passportDiv.style.display = 'none';
+                licenseInput.required = true;
+                passportInput.required = false;
+            } else {
+                licenseDiv.style.display = 'none';
+                passportDiv.style.display = 'block';
+                licenseInput.required = false;
+                passportInput.required = true;
+            }
+        });
+    </script>
 </body>
 </html>
