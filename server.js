@@ -39,6 +39,7 @@ app.set('view engine', 'ejs');
 
 //app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+app.use(express.static('public'))
 
 
 //Logic to display flash messages on Login screen and save user session
@@ -111,7 +112,9 @@ app.post("/login", async (req, res) => {
 //Register new user logic
 app.post("/register", async (req, res) => {
     
-    const userName = req.body.name;
+    const firstName = req.body.first_name;
+    const middleName = req.body.middle_name || ''; // Default to empty string if not provided
+    const lastName = req.body.last_name;
     const age = req.body.age;
     const address = req.body.address;
     const zip = req.body.zip;
@@ -138,8 +141,8 @@ app.post("/register", async (req, res) => {
 
     db.getConnection( async (err, connection) => {
         if(err) throw (err)
-        const sqlInsert = "INSERT INTO users (voter_id, name, age, address, zip, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        const insert_query = mysql.format(sqlInsert,[randomID, userName, age, address, zip, drLic, passport, email, currentDateTime, role, status, hashedPassword]);
+        const sqlInsert = "INSERT INTO users (voter_id, first_name, middle_name, last_name, age, address, zip, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const insert_query = mysql.format(sqlInsert,[randomID, firstName, middleName, lastName, age, address, zip, drLic, passport, email, currentDateTime, role, status, hashedPassword]);
         await connection.query (insert_query, (err, result)=> {
             connection.release()
             if (err) throw (err)

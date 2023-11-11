@@ -1,0 +1,21 @@
+
+html, body {
+    height: 100%;
+    margin: 0;
+    background-color: #f2f9fb;
+}
+.content-wrap {
+    min-height: 100%;
+    /* Equal to footer height */
+    margin-bottom: -50px; 
+}
+.content-wrap:after {
+    content: '';
+    display: block;
+    height: 50px; /* Equal to footer height */
+}
+h1, h2 {
+    color: #0b3962;
+    position: center;
+}
+
