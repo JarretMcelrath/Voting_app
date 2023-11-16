@@ -9,6 +9,7 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const { format } = require('date-fns');
 const nodemailer = require('nodemailer');
+//const crypto = require('crypto');
 
 require("dotenv").config()
 const DB_HOST = process.env.DB_HOST
@@ -38,7 +39,7 @@ db.getConnection( (err, connection)=> {
 app.set('view engine', 'ejs');
 
 //app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({extended: true}));
 app.use(express.static('public'))
 
 
@@ -51,9 +52,6 @@ app.use(session({
 }));
 
 app.use(flash());
-
-
-
 
 //Login user logic, auth
 app.post("/login", async (req, res) => {
@@ -111,12 +109,15 @@ app.post("/login", async (req, res) => {
 
 //Register new user logic
 app.post("/register", async (req, res) => {
+    console.log(req.body);
     
     const firstName = req.body.first_name;
     const middleName = req.body.middle_name || ''; // Default to empty string if not provided
     const lastName = req.body.last_name;
     const age = req.body.age;
     const address = req.body.address;
+    const city = req.body.city;
+    const state = req.body.state;
     const zip = req.body.zip;
     let drLic = null
     let passport = null
@@ -127,6 +128,7 @@ app.post("/register", async (req, res) => {
         passport = req.body.passport
     }
     const email = req.body.email;
+    console.log(email);
     // console.log(`password = ${req.body.password}`);
     // console.log(`Name = ${req.body.name}`);
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -136,26 +138,40 @@ app.post("/register", async (req, res) => {
     const role = 'VO';
     const status = 'PEN';
     console.log ("in /register Post");
+
+    // check if user is already registered
+    const emailCheckQuery = "SELECT * FROM users WHERE email = ?";
+    const emailCheckSql = mysql.format(emailCheckQuery, [email]);
+
+db.getConnection(async (err, connection) => {
+    if (err) throw (err);
     
+    connection.query(emailCheckSql, async (err, results) => {
+        if (err) {
+            connection.release();
+            throw err;
+        }
+        
+        if (results.length > 0) {
+            console.log("Email already registered.");
+            res.json({ success: false, message: "Email already registered." });
+            connection.release();
+        } else {
+            // Email does not exist, proceed with registration
+            const sqlInsert = "INSERT INTO users (voter_id, first_name, middle_name, last_name, age, address, zip, city, state, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            const insert_query = mysql.format(sqlInsert, [randomID, firstName, middleName, lastName, age, address, zip, city, state, drLic, passport, email, currentDateTime, role, status, hashedPassword]);
+            await connection.query(insert_query, (err, result) => {
+                connection.release();
+                if (err) throw (err);
+                console.log("--------> Created new User");
+                console.log(result.insertId);
+                res.json({ success: true, message: "Registration successful." });
+            });
+        }
+    });
+});
 
-
-    db.getConnection( async (err, connection) => {
-        if(err) throw (err)
-        const sqlInsert = "INSERT INTO users (voter_id, first_name, middle_name, last_name, age, address, zip, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        const insert_query = mysql.format(sqlInsert,[randomID, firstName, middleName, lastName, age, address, zip, drLic, passport, email, currentDateTime, role, status, hashedPassword]);
-        await connection.query (insert_query, (err, result)=> {
-            connection.release()
-            if (err) throw (err)
-            console.log ("--------> Created new User")
-            console.log(result.insertId)
-            res.render('register-success', { voterId: randomID });
-            //res.sendStatus(201)
-        })
-    })
-
-    
-
-})
+});
 
 app.get("/admin", async (req, res) => {
     // Fetch the user data from your database
@@ -269,11 +285,132 @@ app.post("/updateUser", async (req, res) => {
     });
 });
 
+// fogot password posts
+app.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    const token = crypto.randomBytes(20).toString('hex');
+    const expireTime = Date.now() + 3600000; // 1 hour from now
+
+    // Update the database with the reset token and expiry time
+    // You need to add these fields in your users table or create a separate table for tokens
+    db.getConnection(async (err, connection) => {
+        if (err) throw err;
+        const sql = "UPDATE users SET resetPasswordToken = ?, resetPasswordExpires = ? WHERE email = ?";
+        const updateQuery = mysql.format(sql, [token, expireTime, email]);
+
+        await connection.query(updateQuery, (err, result) => {
+            connection.release();
+            if (err) throw err;
+
+            // Send reset email
+            const resetUrl = `http://localhost:3000/reset-password/${token}`;
+            let transporter = nodemailer.createTransport({
+                host: 'smtp.zoho.com',
+                secure: true,
+                port: 465,
+                auth: {
+                    user: process.env.EMAIL_ADDRESS,
+                    pass: process.env.EMAIL_PASSWORD
+                },
+            });
+
+            const mailOptions = {
+                from: 'voupdates@yahoo.com', // Update this with your sending email address
+                to: email, // The user's email
+                subject: 'Password Reset Request',
+                html: `<h3>Hi, </h3><br>
+                       <p>You requested a password reset. Click <a href="${resetUrl}">here</a> to reset your password. This link will expire in 1 hour.</p>`
+            };
+
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                    res.json({ success: false, message: 'Error sending email' });
+                } else {
+                    console.log('Email sent: ' + info.response);
+                    res.json({ success: true, message: 'Password reset email sent' });
+                }
+            });
+        });
+    });
+});
+
+// Password reset route
+app.post('/reset-password/:token', async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    db.getConnection(async (err, connection) => {
+        if (err) throw err;
+        const sql = "SELECT * FROM users WHERE resetPasswordToken = ? AND resetPasswordExpires > ?";
+        const query = mysql.format(sql, [token, Date.now()]);
+
+        await connection.query(query, async (err, result) => {
+            if (err || result.length === 0) {
+                connection.release();
+                res.json({ success: false, message: 'Password reset token is invalid or has expired' });
+                return;
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const updateSql = "UPDATE users SET password = ?, resetPasswordToken = NULL, resetPasswordExpires = NULL WHERE email = ?";
+            const updateQuery = mysql.format(updateSql, [hashedPassword, result[0].email]);
+
+            await connection.query(updateQuery, (err, updateResult) => {
+                connection.release();
+                if (err) {
+                    res.json({ success: false, message: 'Error resetting password' });
+                } else {
+                    res.json({ success: true, message: 'Password has been updated' });
+                }
+            });
+        });
+    });
+});
+
+// POST route to handle password update
+app.post('/update-password/:token', async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body; // Assuming the new password field is named 'password'
+
+    db.getConnection(async (err, connection) => {
+        if (err) throw err;
+        
+        // Verify the token and its expiration
+        const tokenQuery = "SELECT * FROM users WHERE resetPasswordToken = ? AND resetPasswordExpires > ?";
+        const query = mysql.format(tokenQuery, [token, Date.now()]);
+
+        await connection.query(query, async (err, result) => {
+            if (err || result.length === 0) {
+                connection.release();
+                // Token is invalid or expired
+                res.status(400).send('Password reset token is invalid or has expired.');
+                return;
+            }
+
+            // Token is valid, proceed with updating the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const updateSql = "UPDATE users SET password = ?, resetPasswordToken = NULL, resetPasswordExpires = NULL WHERE email = ?";
+            const updateQuery = mysql.format(updateSql, [hashedPassword, result[0].email]);
+
+            await connection.query(updateQuery, (err, updateResult) => {
+                connection.release();
+                if (err) {
+                    res.status(500).send('Error updating password.');
+                } else {
+                    res.send('Password has been successfully updated.');
+                }
+            });
+        });
+    });
+});
+
+
+
 //routes
 app.get("/", (req, res) => {
     res.render("index.ejs");
 });
-
 
 app.get("/login", (req, res) => {
     res.render("login.ejs", { messages: { error: req.flash('error') } });
@@ -282,6 +419,19 @@ app.get("/login", (req, res) => {
 
 app.get("/register", (req, res) => {
     res.render("register.ejs");
+});
+
+app.get("/forgot-password", (req, res) => {
+    res.render("forgot-password.ejs");
+});
+
+app.get('/reset-password/:token', (req, res) => {
+    const { token } = req.params;
+    // Here, you can also optionally verify the token and its expiry before rendering the page
+
+    // Render a view (EJS page) for password reset
+    // Ensure you have a view named 'reset-password.ejs' in your views folder
+    res.render('reset-password', { token });
 });
 //end
 

@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Details</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
 </head>
 <body>
     <% if (messages.success && messages.success.length > 0) { %>
@@ -16,11 +18,21 @@
     <% } %>
     <div class="container mt-4">
         <h2>Voter Registration Form</h2>
-        <form action="/updateUser" method="POST"> 
-            <!-- Name -->
+        <form action="/updateUser" method="POST">
+            <!-- First Name -->
             <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" name="name" class="form-control" id="name" placeholder="Enter your full name" value="<%= userDetails.name %>" disabled>                
+                <label for="first_name">First Name:</label>
+                <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Enter your first name" required value="<%= userDetails.first_name %>" disabled>
+            </div>
+            <!-- Middle Name -->
+            <div class="form-group">
+                <label for="middle_name">Middle Name:</label>
+                <input type="text" name="middle_name" class="form-control" id="middle_name" placeholder="Enter your middle name" required value="<%= userDetails.middle_name %>" disabled>
+            </div>
+            <!-- Last Name -->
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Enter your last name" required value="<%= userDetails.last_name %>" disabled>
             </div>
             <!-- Age -->
             <div class="form-group">
@@ -29,13 +41,23 @@
             </div>
             <!-- Address -->
             <div class="form-group">
-                <label for="address">Address:</label>
-                <input type="text" name="address" class="form-control" id="address" placeholder="Enter your address" required value="<%= userDetails.address %>" disabled> 
+                <label for="address">Street Address:</label>
+                <input type="text" name="address" class="form-control" id="address" placeholder="Enter your street address" required value="<%= userDetails.address %>">
+            </div>
+            <!-- City -->
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" class="form-control" name="city" id="city" placeholder="Enter your city" required value="<%= userDetails.city %>">
+            </div>
+            <!-- State -->
+            <div class="form-group">
+                <label for="state">State:</label>
+                <input type="text" class="form-control" name="state" id="state" placeholder="Enter your state" required value="<%= userDetails.state %>">
             </div>
             <!-- Zip Code -->
             <div class="form-group">
                 <label for="zip">Zip Code:</label>
-                <input type="text" class="form-control" name="zip" id="zip" placeholder="Enter your ZIP code" required value="<%= userDetails.zip %>" disabled>
+                <input type="text" class="form-control" name="zip" id="zip" placeholder="Enter your ZIP code" required value="<%= userDetails.zip %>">
             </div>
             <!-- Driving License -->
             <div class="form-group">
@@ -52,6 +74,11 @@
                 <label for="email">Email ID:</label>
                 <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email address" required value="<%= userDetails.email %>" disabled>
             </div>
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">New Password:</label>
+                <input type="password" class="form-control" name="password" id="password" placeholder="Enter new password">
+            </div>
             
             <div class="row">
                 <div class="col text-left">
@@ -61,25 +88,14 @@
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </div>
-
-            
-
-        </form>
+        </form> 
     </div>
 
+    <!-- Include jQuery and Bootstrap scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-
-        
-    <script>
-        $(document).ready(function() {
-            setTimeout(function() {
-                $("#success-alert").fadeTo(500, 0).slideUp(500, function(){
-                    $(this).remove(); 
-                });
-            }, 5000);
-        });
-    </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
     <script>
         $(document).ready(function() {
             $('#edit-info').click(function() {
@@ -87,8 +103,5 @@
             });
         });
     </script>
-    <!-- Include Bootstrap JS and jQuery libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

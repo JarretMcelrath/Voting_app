@@ -1,16 +1,53 @@
+<!DOCTYPE html>
 <%- include('partials/header', { title: 'Home Page' }) %>
 <link rel="stylesheet" href="/css/style.css">
 
+<html lang="en">
+<head>
+    <style>
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
 
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+        }
 
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
 
+        .btn {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="content">
+            <!-- Corrected this line -->
+            <img src="/images/go_vote_logo.png" alt="Image Description" class="img-fluid" style="height: 300px;">
+            <div class="text-center">
+                <h1>Welcome to Go Vote</h1>
+                <p>Description or additional text can go here.</p>
+                <div>
+                    <a href="/login" class="btn btn-primary">Login</a>
+                    <a href="/register" class="btn btn-primary">Register</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
 
-
-
-
-
-
-
-
-
-<%- include('partials/footer') %>
+    <%- include('partials/footer') %>
+    
+</body>
+</html>
