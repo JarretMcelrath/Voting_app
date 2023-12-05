@@ -17,27 +17,38 @@
         </div>
     <% } %>
     <div class="container mt-4">
-        <h2>Voter Registration Form</h2>
+        <h2>User Details</h2>
         <form action="/updateUser" method="POST">
+            <div class="form-group">
+                <label for="voter_id">Voter ID</label>
+                <input type="text" name="voter_id" class="form-control" id="voter_id" required value="<%= userDetails.voter_id %>" disabled>
+                <input type="hidden" name="voter_id" value="<%= userDetails.voter_id %>">
+            </div>
             <!-- First Name -->
             <div class="form-group">
                 <label for="first_name">First Name:</label>
                 <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Enter your first name" required value="<%= userDetails.first_name %>" disabled>
+                <input type="hidden" name="first_name" value="<%= userDetails.first_name %>">
             </div>
             <!-- Middle Name -->
             <div class="form-group">
                 <label for="middle_name">Middle Name:</label>
                 <input type="text" name="middle_name" class="form-control" id="middle_name" placeholder="Enter your middle name" required value="<%= userDetails.middle_name %>" disabled>
+                <input type="hidden" name="middle" value="<%= userDetails.middle_name %>">
+
             </div>
             <!-- Last Name -->
             <div class="form-group">
                 <label for="last_name">Last Name:</label>
                 <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Enter your last name" required value="<%= userDetails.last_name %>" disabled>
+                <input type="hidden" name="last_name" value="<%= userDetails.last_name %>">
             </div>
             <!-- Age -->
             <div class="form-group">
                 <label for="age">Age:</label>
                 <input type="number" name="age" class="form-control" id="age" placeholder="Enter your age" required value="<%= userDetails.age %>" disabled>
+                <input type="hidden" name="age" value="<%= userDetails.age %>">
+
             </div>
             <!-- Address -->
             <div class="form-group">
@@ -63,16 +74,20 @@
             <div class="form-group">
                 <label for="license">Driving License:</label>
                 <input type="text" class="form-control" name="driving" id="license" placeholder="Enter your driving license number" required value="<%= userDetails.driving_lic %>" disabled>
+                <input type="hidden" name="driving" value="<%= userDetails.driving %>">
             </div>
             <!-- Passport -->
             <div class="form-group">
                 <label for="passport">Passport:</label>
                 <input type="text" class="form-control" name="passport" id="passport" placeholder="Enter your passport number" required value="<%= userDetails.passport %>" disabled>
+                <input type="hidden" name="passport" value="<%= userDetails.passport %>">
             </div>
             <!-- Email ID -->
             <div class="form-group">
                 <label for="email">Email ID:</label>
                 <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email address" required value="<%= userDetails.email %>" disabled>
+                <input type="hidden" name="email" value="<%= userDetails.email %>">
+
             </div>
             <!-- Password -->
             <div class="form-group">
@@ -81,9 +96,6 @@
             </div>
             
             <div class="row">
-                <div class="col text-left">
-                    <button type="button" id="edit-info" class="btn btn-secondary">Edit Info</button>
-                </div>
                 <div class="col text-right">
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
@@ -99,10 +111,15 @@
     <script>
         $(document).ready(function() {
             $('#edit-info').click(function() {
-                $('form input').prop('disabled', false);
+                const editableFields = ['#address', '#city', '#state', '#zip', '#password'];
+                
+                editableFields.forEach(selector => {
+                    $(selector).prop('disabled', false);
+                });
             });
         });
     </script>
+    
 </body>
 </html>
 

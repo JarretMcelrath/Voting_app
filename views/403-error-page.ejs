@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<%- include('partials/header', { title: 'Home Page' }) %>
+
+<head>
+    <title>403 Forbidden</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .error-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .error-page h1 {
+            font-size: 100px;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container error-page">
+        <div>
+            <h1>403</h1>
+            <h3 class="text-uppercase">Forbidden</h3>
+            <p class="lead">Sorry, you don't have permission to access this page.</p>
+            <a href="/" class="btn btn-primary">Go Home</a>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and its dependencies -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
