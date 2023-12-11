@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<%- include('partials/header', { title: 'Vote' }) %>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+          <% if (results.length > 0) { %>
+            <div class="col-sm-12">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title"><%= results[0].name %></h5>
+                  <p class="card-text">
+                    Start Time: <%= new Date(results[0].start_time).toLocaleString() %><br>
+                    End Time: <%= new Date(results[0].end_time).toLocaleString() %>
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% } %>
+          <% results.forEach(result => { %>
+            <div class="col-sm-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title"><%= result.first_name %> <%= result.last_name %></h5>
+                  <h6 class="card-subtitle mb-2 text-muted"><%= result.party %></h6>
+                  <p class="card-text">
+                    Office: <%= result.office %><br>
+                    Precinct: <%= result.name %><br>
+                    Zipcode: <%= result.zipcode %>
+                  </p>
+                  <% let currentTime = new Date(); %>
+                  <% if (currentTime >= new Date(result.start_time) && currentTime <= new Date(result.end_time)) { %>
+                    <form action="/voteCount/<%= result.c_id %>" method="POST">
+                      <button type="submit" class="btn btn-primary">Vote</button>
+                    </form>
+                  <% } else { %>
+                    <button class="btn btn-primary" disabled>Vote</button>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+</body>
+</html>

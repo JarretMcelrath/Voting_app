@@ -87,23 +87,37 @@
             updatePrecinctsInput(); // Update the hidden input field
         }
     
+        // function updateCandidatesInput() {
+        //     var candidateStrings = candidates.map(function(candidate) {
+        //         return candidate.firstName + ' ' + candidate.lastName + ', ' + candidate.party + ' - ' + candidate.office + ';';
+        //     });
+    
+        //     var candidatesInput = document.getElementById("candidates-json");
+        //     candidatesInput.value = candidateStrings.join(', ');
+        // }
         function updateCandidatesInput() {
-            var candidateStrings = candidates.map(function(candidate) {
-                return candidate.firstName + ' ' + candidate.lastName + ', ' + candidate.party + ' - ' + candidate.office;
-            });
-    
+            var candidatesJson = JSON.stringify(candidates);
             var candidatesInput = document.getElementById("candidates-json");
-            candidatesInput.value = candidateStrings.join(', ');
+            candidatesInput.value = candidatesJson;
+            return candidatesJson; // Return the JSON string
         }
-    
+
         function updatePrecinctsInput() {
-            var precinctStrings = precincts.map(function(precinct) {
-                return precinct.name + ', ' + precinct.address + ' - ' + precinct.zipCode;
-            });
-    
+            var precentJson = JSON.stringify(precincts);
             var precinctsInput = document.getElementById("precincts-json");
-            precinctsInput.value = precinctStrings.join(', ');
+            precinctsInput.value = precentJson;
+            return precentJson;
         }
+
+    
+        // function updatePrecinctsInput() {
+        //     var precinctStrings = precincts.map(function(precinct) {
+        //         return precinct.name + ', ' + precinct.address + ' - ' + precinct.zipCode + ';';
+        //     });
+    
+        //     var precinctsInput = document.getElementById("precincts-json");
+        //     precinctsInput.value = precinctStrings.join(', ');
+        // }
     
         $(document).ready(function() {
             $('#pollForm').on('submit', function(e) {
@@ -144,13 +158,13 @@
                     <div class="form-group row">
                         <!-- Start Time -->
                         <div class="col-md-6">
-                            <label for="start-time">Start Time:</label>
-                            <input type="time" class="form-control" id="start-time" name="start-time" required>                        </div>
+                            <label for="start_time">Start Time:</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>                        </div>
                     
                         <!-- End Time -->
                         <div class="col-md-6">
-                            <label for="end-time">End Time:</label>
-                            <input type="time" class="form-control" id="end-time" name="end-time" required>                        </div>
+                            <label for="end_time">End Time:</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>                        </div>
                     </div>
 
                     <!-- Precinct -->

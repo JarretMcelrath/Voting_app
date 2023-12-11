@@ -105,138 +105,143 @@ app.post("/login", async (req, res) => {
 });
 
 //Register new user logic
-app.post("/register", catrchAsync(async (req, res) => {
-  console.log(req.body);
+app.post(
+  "/register",
+  catrchAsync(async (req, res) => {
+    console.log(req.body);
 
-  const firstName = req.body.first_name;
-  const middleName = req.body.middle_name || ""; // Default to empty string if not provided
-  const lastName = req.body.last_name;
-  const age = req.body.age;
-  const address = req.body.address;
-  const city = req.body.city;
-  const state = req.body.state;
-  const zip = req.body.zip;
-  let drLic = null;
-  let passport = null;
-  console.dir(req.body, { depth: null });
-  if (req.body.documentType === "license") {
-    drLic = req.body.driving;
-  } else {
-    passport = req.body.passport;
-  }
-  const email = req.body.email;
-  console.log(email);
-  // console.log(`password = ${req.body.password}`);
-  // console.log(`Name = ${req.body.name}`);
-  const hashedPassword = await bcrypt.hash(req.body.password, 10);
-  const randomUUID = uuidv4();
-  const randomID = parseInt(randomUUID.slice(0, 5), 16);
-  const currentDateTime = format(new Date(), "yyyy-MM-dd HH:mm:ss");
-  const role = "VO";
-  const status = "PEN";
-  console.log("in /register Post");
+    const firstName = req.body.first_name;
+    const middleName = req.body.middle_name || ""; // Default to empty string if not provided
+    const lastName = req.body.last_name;
+    const age = req.body.age;
+    const address = req.body.address;
+    const city = req.body.city;
+    const state = req.body.state;
+    const zip = req.body.zip;
+    const role = req.body.role;
+    let drLic = null;
+    let passport = null;
+    console.dir(req.body, { depth: null });
+    if (req.body.documentType === "license") {
+      drLic = req.body.driving;
+    } else {
+      passport = req.body.passport;
+    }
+    const email = req.body.email;
+    console.log(email);
+    // console.log(`password = ${req.body.password}`);
+    // console.log(`Name = ${req.body.name}`);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const randomUUID = uuidv4();
+    const randomID = parseInt(randomUUID.slice(0, 5), 16);
+    const currentDateTime = format(new Date(), "yyyy-MM-dd HH:mm:ss");
+    const status = "PEN";
+    console.log("in /register Post");
 
-  // check if user is already registered
-  const emailCheckQuery = "SELECT * FROM users WHERE email = ?";
-  const emailCheckSql = mysql.format(emailCheckQuery, [email]);
+    // check if user is already registered
+    const emailCheckQuery = "SELECT * FROM users WHERE email = ?";
+    const emailCheckSql = mysql.format(emailCheckQuery, [email]);
 
-  db.getConnection(async (err, connection) => {
-    if (err) throw err;
+    db.getConnection(async (err, connection) => {
+      if (err) throw err;
 
-    connection.query(emailCheckSql, async (err, results) => {
-      if (err) {
-        connection.release();
-        throw err;
-      }
-
-      if (results.length > 0) {
-        console.log("Email already registered.");
-        res.json({ success: false, message: "Email already registered." });
-        connection.release();
-      } else {
-        // Email does not exist, proceed with registration
-        const sqlInsert =
-          "INSERT INTO users (voter_id, first_name, middle_name, last_name, age, address, zip, city, state, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        const insert_query = mysql.format(sqlInsert, [
-          randomID,
-          firstName,
-          middleName,
-          lastName,
-          age,
-          address,
-          zip,
-          city,
-          state,
-          drLic,
-          passport,
-          email,
-          currentDateTime,
-          role,
-          status,
-          hashedPassword,
-        ]);
-        await connection.query(insert_query, (err, result) => {
+      connection.query(emailCheckSql, async (err, results) => {
+        if (err) {
           connection.release();
-          if (err) throw err;
-          console.log("--------> Created new User");
-          console.log(result.insertId);
-          res.json({ success: true, message: "Registration successful." });
-        });
-      }
-    });
-  });
-}));
+          throw err;
+        }
 
-app.get("/admin", catrchAsync(async (req, res) => {
+        if (results.length > 0) {
+          console.log("Email already registered.");
+          res.json({ success: false, message: "Email already registered." });
+          connection.release();
+        } else {
+          // Email does not exist, proceed with registration
+          const sqlInsert =
+            "INSERT INTO users (voter_id, first_name, middle_name, last_name, age, address, zip, city, state, driving_lic, passport, email, d_usr_create, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          const insert_query = mysql.format(sqlInsert, [
+            randomID,
+            firstName,
+            middleName,
+            lastName,
+            age,
+            address,
+            zip,
+            city,
+            state,
+            drLic,
+            passport,
+            email,
+            currentDateTime,
+            role,
+            status,
+            hashedPassword,
+          ]);
+          await connection.query(insert_query, (err, result) => {
+            connection.release();
+            if (err) throw err;
+            console.log("--------> Created new User");
+            console.log(result.insertId);
+            res.json({ success: true, message: "Registration successful." });
+          });
+        }
+      });
+    });
+  })
+);
+
+app.get(
+  "/admin",
+  catrchAsync(async (req, res) => {
     const users = await getTempUsersData();
 
     // Fetch the user data from your database
     // console.log("Inside admin");
     // console.dir(req.session.user, {depth: null});
     if (req.session.user != null) {
-    // fetch user data
-    const user_Details = req.session.user;
-    // verify user is admin
-        if(user_Details.role === 'AD'){
-        
+      // fetch user data
+      const user_Details = req.session.user;
+      // verify user is admin
+      if (user_Details.role === "AD") {
         // console.dir(users, { depth: null });
         // console.log(`Result Length = ${users.length}`);
 
         // Render the adminPannel view and pass the users data to it
         res.render("adminPannel", { users: users });
-        } else{
-            res.render("403-error-page");
-        }
-    } else{
+      } else {
         res.render("403-error-page");
+      }
+    } else {
+      res.render("403-error-page");
     }
-}));
+  })
+);
 
 app.delete("/deleteUser/:voterId", (req, res) => {
-    const voterId = req.params.voterId;
-  
-    db.getConnection((err, connection) => {
+  const voterId = req.params.voterId;
+
+  db.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting DB connection:", err);
+      return res.status(500).send("Server Error");
+    }
+
+    const deleteQuery = "DELETE FROM users WHERE voter_id = ?";
+    const query = mysql.format(deleteQuery, [voterId]);
+
+    connection.query(query, (err, result) => {
+      connection.release();
+
       if (err) {
-        console.error("Error getting DB connection:", err);
-        return res.status(500).send("Server Error");
+        console.error("Error executing delete query:", err);
+        return res.status(500).send("Error deleting user");
       }
-  
-      const deleteQuery = "DELETE FROM users WHERE voter_id = ?";
-      const query = mysql.format(deleteQuery, [voterId]);
-  
-      connection.query(query, (err, result) => {
-        connection.release();
-  
-        if (err) {
-          console.error("Error executing delete query:", err);
-          return res.status(500).send("Error deleting user");
-        }
-  
-        console.log("Deleted user with voter ID:", voterId);
-        res.status(200).send("User deleted successfully");
-      });
+
+      console.log("Deleted user with voter ID:", voterId);
+      res.status(200).send("User deleted successfully");
     });
   });
+});
 
 app.get("/userPannel", (req, res) => {
   // Fetch the user data from your database
@@ -286,67 +291,77 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/editUserInfo/:voterId", async (req, res) => {
-    const voterId = req.params.voterId;
-    const status = "APR"
+  const voterId = req.params.voterId;
+  const status = "APR";
 
-    db.getConnection((err, connection) => {
-        if (err) {
-            console.error("Error getting DB connection:", err);
-            return res.status(500).send("Server Error");
-        }
+  db.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting DB connection:", err);
+      return res.status(500).send("Server Error");
+    }
 
-        const sqlSearch = "SELECT * FROM users WHERE voter_id = ?";
-        const search_query = mysql.format(sqlSearch, [voterId]);
+    const sqlSearch = "SELECT * FROM users WHERE voter_id = ?";
+    const search_query = mysql.format(sqlSearch, [voterId]);
 
-        connection.query(search_query, (err, result) => {
-            connection.release();
+    connection.query(search_query, (err, result) => {
+      connection.release();
 
-            if (err) {
-                console.error("Error executing query:", err);
-                return res.status(500).send("Error fetching user data");
-            }
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Error fetching user data");
+      }
 
-            if (result.length === 0) {
-                return res.status(404).send("User not found");
-            }
+      if (result.length === 0) {
+        return res.status(404).send("User not found");
+      }
 
-            // Render editUserInfo view with the fetched user data
-            res.render("editUserInfo", { userDetails: result[0], messages: {} });
-        });
+      // Render editUserInfo view with the fetched user data
+      res.render("editUserInfo", { userDetails: result[0], messages: {} });
     });
+  });
 });
-
-
 
 app.get("/yourInfo", (req, res) => {
-    if (req.session.user != null){
-        const user_details = req.session.user;
-        if (user_details.role == "AD" || user_details.voterId == user_details.voterId) {
-            const userDetails = req.session.user;
-            res.render("editUserInfo", { userDetails: userDetails, messages: { success: req.flash("success") } });
-        }
-    } else {
-        res.redirect("/login");
+  if (req.session.user != null) {
+    const user_details = req.session.user;
+    if (user_details.role == "AD" || user_details.voterId == user_details.voterId) {
+      const userDetails = req.session.user;
+      res.render("editUserInfo", { userDetails: userDetails, messages: { success: req.flash("success") } });
     }
+  } else {
+    res.redirect("/login");
+  }
 });
 
-app.post("/updateUser", catrchAsync(async (req, res) => {
-  const { voter_id, first_name, middle_name, last_name, age, address, zip, driving, passport, email } = req.body;
-  const userDetails = req.session.user;
+app.post(
+  "/updateUser",
+  catrchAsync(async (req, res) => {
+    const { voter_id, first_name, middle_name, last_name, age, address, zip, driving, passport, email } = req.body;
+    let zipUpdate = null;
+    const userDetails = req.session.user;
+    console.log(
+      `Voter ID = ${voter_id}, first name = ${first_name}, middle name = ${middle_name}, last name = ${last_name}, age = ${age}, address = ${address}, zip = ${zip}, driving = ${driving}, passport = ${passport} ,email = ${email}`
+    );
+    console.log(`Session ZIP = ${req.session.user.zip}`);
+    if (req.session.user.zip !== zip) {
+      zipUpdate = format(new Date(), "yyyy-MM-dd HH:mm:ss");
+    }
 
-  db.getConnection(async (err, connection) => {
-    if (err) throw err;
-
-    const sqlUpdate = "UPDATE users SET first_name = ?, middle_name = ?, last_name = ?, age = ?, address = ?, zip = ?, driving_lic = ?, passport = ?, email = ? WHERE voter_id = ?";
-    const update = mysql.format(sqlUpdate, [first_name, middle_name, last_name, age, address, zip, driving, passport, email, voter_id]);
-
-    await connection.query(update, (err, result) => {
-      // connection.release();
+    db.getConnection(async (err, connection) => {
       if (err) throw err;
 
-      console.log("User details updated");
-      req.flash("success", "Changes saved");
-    });
+      const sqlUpdate =
+        "UPDATE users SET first_name = ?, middle_name = ?, last_name = ?, age = ?, address = ?, zip = ?, driving_lic = ?, passport = ?, email = ?, d_zip_last_updt = ? WHERE voter_id = ?";
+      const update = mysql.format(sqlUpdate, [first_name, middle_name, last_name, age, address, zip, driving, passport, email, zipUpdate, voter_id]);
+
+      await connection.query(update, (err, result) => {
+        // connection.release();
+        if (err) throw err;
+
+        console.log("User details updated");
+        console.dir(result);
+        req.flash("success", "Changes saved");
+      });
 
       const sqlSearch = "SELECT * FROM users WHERE voter_id = ?";
       const search_query = mysql.format(sqlSearch, [userDetails.voter_id]);
@@ -359,8 +374,9 @@ app.post("/updateUser", catrchAsync(async (req, res) => {
         req.session.user = result[0];
         res.redirect("/yourInfo");
       });
-  });
-}));
+    });
+  })
+);
 
 // fogot password
 app.post("/forgot-password", async (req, res) => {
@@ -510,69 +526,273 @@ app.get("/reset-password/:token", (req, res) => {
 });
 
 // Setting up Polls
-app.get('/getCandidates', (req, res) => {
+app.get("/getCandidates", (req, res) => {
   // SQL query to fetch candidates
-  const query = 'SELECT candidate_first_name, candidate_last_name, candidate_state, candidate_party FROM candidates';
+  const query = "SELECT candidate_first_name, candidate_last_name, candidate_state, candidate_party FROM candidates";
 
   // Execute the query
   db.query(query, (error, results) => {
-      if (error) {
-          // Handle the error
-          res.status(500).send('Error fetching candidates');
-      } else {
-          // Send results back to the client
-          res.json(results);
-      }
+    if (error) {
+      // Handle the error
+      res.status(500).send("Error fetching candidates");
+    } else {
+      // Send results back to the client
+      res.json(results);
+    }
   });
 });
 
 app.get("/createPoll", (req, res) => {
-  res.render("createPoll");
-});
+  if (req.session.user != null) {
+    // fetch user data
+    const user_Details = req.session.user;
+    // verify user is admin
+    if (user_Details.role === "AD" || user_Details.role === "MG") {
+      // console.dir(users, { depth: null });
+      // console.log(`Result Length = ${users.length}`);
 
-// POST route to handle poll setup submission
-app.post('/setuppoll', (req, res) => {
-  const { title, date, start_time, end_time, precincts, candidates } = req.body;
-  console.log('Candidates string:', req.body.candidates);
-  console.log('Precincts string:', req.body.precincts);
-
-
-  try {
-      // Parse the candidates and precincts JSON strings
-      // Make sure they are being sent as valid JSON strings from the client-side
-      const parsedCandidates = JSON.parse(candidates);
-      const parsedPrecincts = JSON.parse(precincts);
-
-      // Insert data into the database
-      dbPool.getConnection((err, connection) => {
-          if (err) {
-              console.error('Error getting DB connection:', err);
-              return res.status(500).send('Server Error');
-          }
-
-          const sqlInsert = "INSERT INTO polls (title, poll_date, start_time, end_time, precincts, candidates) VALUES (?, ?, ?, ?, ?, ?)";
-          const values = [title, date, start_time, end_time, JSON.stringify(parsedPrecincts), JSON.stringify(parsedCandidates)];
-
-          connection.query(sqlInsert, values, (error, results) => {
-              connection.release();
-
-              if (error) {
-                  console.error('Error executing insert query:', error);
-                  return res.status(500).send('Error saving poll data');
-              }
-
-              console.log('Poll data saved successfully:', results);
-              res.status(200).send('Poll setup successful!');
-          });
-      });
-  } catch (err) {
-      console.error('Error parsing JSON data:', err);
-      res.status(400).send('Invalid JSON data: ' + err.message);
+      // Render the adminPannel view and pass the users data to it
+      res.render("createPoll");
+    } else {
+      res.render("403-error-page");
+    }
+  } else {
+    res.render("403-error-page");
   }
 });
 
+// POST route to handle poll setup submission
+app.post("/setuppoll", async (req, res) => {
+  const { title, date, start_time, end_time, precincts, candidates } = req.body;
+  const randomPollID = uuidv4();
+  const pollID = parseInt(randomPollID.slice(0, 5), 16);
+  console.log("Candidates string:", req.body.candidates);
+  console.log("Precincts string:", req.body.precincts);
+  console.log(`Start Time = ${start_time}`);
+  console.log(`End Time = ${end_time}`);
+  console.log(`Titel = ${title}`);
+  console.log(`date  = ${date}`);
+
+  try {
+    // Parse the candidates and precincts JSON strings
+    // Make sure they are being sent as valid JSON strings from the client-side
+    // const parsedCandidates = JSON.parse(candidates);
+    // const parsedPrecincts = JSON.parse(precincts);
+    const parsedCandidates = candidates !== "NaN" ? JSON.parse(candidates) : [];
+    const parsedPrecincts = precincts !== "NaN" ? JSON.parse(precincts) : [];
+    // const candidatesObj = parsedCandidates.map((candidate, index) => ({ id: index + 1, name: candidate }));
+    // const precinctsObj = parsedPrecincts.map((precinct, index) => ({ id: index + 1, name: precinct }));
+    console.dir(parsedCandidates);
+    console.dir(parsedPrecincts);
+
+    // Insert data into the database
+    db.getConnection(async (err, connection) => {
+      const poll_title = title;
+      const poll_date = date;
+
+      let startDateandTime = new Date(`${poll_date}T${start_time}:00`);
+      let endtDateandTime = new Date(`${poll_date}T${end_time}:00`);
+
+      const sqlInsert_polls = "INSERT INTO polls (poll_id, title, poll_date, start_time, end_time, act_ind) VALUES (?, ?, ?, ?, ?, ?)";
+      const poll_values = [pollID, poll_title, poll_date, startDateandTime, endtDateandTime, 'Y'];
+
+      try {
+        const results = await new Promise((resolve, reject) => {
+          connection.query(sqlInsert_polls, poll_values, (error, results) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        });
+      } catch (error) {
+        console.error("Error saving polls data:", error);
+        res.status(500).send("Error saving polls data");
+      }
+
+      parsedCandidates.forEach(async (candidate) => {
+        const { firstName, lastName, party, office } = candidate;
+        const sqlInsert_candidate = "INSERT INTO candidates (poll_id, first_name, last_name, party, office) VALUES (?, ?, ?, ?, ?)";
+        const values = [pollID, firstName, lastName, party, office];
+
+        try {
+          const results = await new Promise((resolve, reject) => {
+            connection.query(sqlInsert_candidate, values, (error, results) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            });
+          });
+          console.log("Candidate data saved successfully:", results);
+        } catch (error) {
+          console.error("Error saving candidate data:", error);
+          res.status(500).send("Error saving candidate data");
+        }
+      });
+
+      parsedPrecincts.forEach(async (precinct) => {
+        const { name, address, zipCode } = precinct;
+        const sqlInsert_preinct = "INSERT INTO precincts (poll_id, name, address, zipcode) VALUES (?, ?, ?, ?)";
+        const precinct_values = [pollID, name, address, zipCode];
+        try {
+          const results = await new Promise((resolve, reject) => {
+            connection.query(sqlInsert_preinct, precinct_values, (error, results) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(results);
+                connection.release();
+              }
+            });
+          });
+          console.log("Candiprecinctdate data saved successfully:", results);
+        } catch (error) {
+          console.error("Error saving precinct data:", error);
+          res.status(500).send("Error saving precinct data");
+        }
+      });
+    });
+
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Error parsing JSON data:", err);
+    res.status(400).send("Invalid JSON data: " + err.message);
+  }
+});
+
+app.get('/viewVotes', catrchAsync(async (req, res) => {
+  let user_Details = req.session.user;
+  let results = [];
+  let votCheck = [];
+  if(user_Details.status === 'APR' ){
+    const sqlSelect_Votes = "select cd.poll_id, pt.name, cd.first_name, cd.last_name, cd.party, cd.office, pt.zipcode, p.start_time, p.end_time, cd.c_id from candidates cd join polls p on cd.poll_id = p.poll_id join precincts pt on pt.poll_id = p.poll_id where p.act_ind = 'Y' and pt.zipcode = ?";
+    const select_Votes = mysql.format(sqlSelect_Votes, [user_Details.zip]);
 
 
+    
+    db.getConnection(async (err, connection) => {
+      if (err) throw err;
+      try {
+        results = await new Promise((resolve, reject) => {
+          connection.query(select_Votes, (err, result) => {
+            if (err) reject(err);
+            resolve(result);
+          });
+        });
+
+        const { format, parseISO } = require('date-fns');
+        results.forEach(result => {
+          result.start_time = format(result.start_time, "yyyy-MM-dd HH:mm:ss");
+          result.end_time = format(result.end_time, "yyyy-MM-dd HH:mm:ss");
+        });
+
+        console.log(results);
+      
+        user_Details.d_zip_last_updt = format(parseISO(user_Details.d_zip_last_updt), "yyyy-MM-dd HH:mm:ss");
+
+        const sqlCheckvote = "select distinct user_id from record where poll_id = ?";
+        const checkvoteValue = mysql.format(sqlCheckvote, [results[0].poll_id]);
+
+        votCheck = await new Promise((resolve, reject) => {
+          connection.query(checkvoteValue, (err, result) => {
+            if (err) reject(err);
+            resolve(result);
+          });
+        });
+
+
+        if(user_Details.d_zip_last_updt >= results[0].start_time){
+          res.send("You cannot vote because you changed your zip during the voting timeperiod.");
+          
+        } else if(votCheck[0]){
+          res.send("You have already voted!!");
+        } else {
+            res.render("userVote", { results });
+        }
+      } catch (error) {
+        console.error("Error fetching votes:", error);
+        res.status(500).send("Error fetching votes");
+      } finally {
+        connection.release();
+      }
+    });
+  } else {
+    res.send("Your request is not yet approved, You cannot vote");
+  }
+}));
+
+app.post('/voteCount/:c_id', catrchAsync(async (req, res) => {
+  const { c_id } = req.params;
+  const user_Details = req.session.user;
+  let rep = [];
+  console.log("Inside record vote");
+  console.log(req.params);
+  console.log(`Voted for ${c_id}`);
+
+
+  db.getConnection(async (err, connection) => {
+    const sqlSelect_Votes = "select p.poll_id from polls p join precincts pt on p.poll_id = pt.poll_id where pt.zipcode = ?";
+    const select_Votes = mysql.format(sqlSelect_Votes, [user_Details.zip]);
+    if (err) throw err;
+      try {
+        rep = await new Promise((resolve, reject) => {
+          connection.query(select_Votes, (err, resu) => {
+            if (err) reject(err);
+            resolve(resu);
+          });
+        });
+
+      } catch (error) {
+        console.error("Error voting:", error);
+        res.status(500).send("Error fetching votes");
+      }
+      console.log(rep);
+
+    const recordQuery = "INSERT into record (poll_id, user_id) VALUES(? ,?)";
+    const recordValues = [rep[0].poll_id, user_Details.voter_id];
+    try {
+      const results = await new Promise((resolve, reject) => {
+        connection.query(recordQuery, recordValues, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+      console.log("record kept:", results);
+    } catch (error) {
+      console.error("Error recording the vote", error);
+      res.status(500).send("Error");
+    }
+
+    const voteIncQuery = "UPDATE candidates SET vote_count = COALESCE(vote_count, 0) + 1 WHERE c_id = ?";
+    const incValue = [c_id];
+    try {
+      const results = await new Promise((resolve, reject) => {
+        connection.query(voteIncQuery, incValue, (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(results);
+            // connection.release();
+          }
+        });
+      });
+      console.log("vote recorded:", results);
+      res.send("Your vote has been recorded, you have been logged out, please close this window!");
+    } catch (error) {
+      console.error("Error recording the vote", error);
+      res.status(500).send("Error");
+    }
+    
+
+
+  });
+}));
 
 //end
 
@@ -621,7 +841,7 @@ function getUserEmailFromDatabase(voterID) {
     console.log(`inside getUser Voter ID = ${voterID}`);
     db.getConnection(async (err, connection) => {
       if (err) reject(err);
-      const sqlQuery = "select email, voter_id, name from users where voter_id = ?";
+      const sqlQuery = "select email, voter_id, first_name from users where voter_id = ?";
       const query = mysql.format(sqlQuery, [voterID]);
 
       await connection.query(query, (err, result) => {
@@ -670,7 +890,7 @@ function sendEmail(emailAndVoterID, decision) {
         from: "voupdates@yahoo.com",
         to: emailAndVoterID[0].email,
         subject: "Your account has been approved",
-        html: `<h3>Hi ${emailAndVoterID[0].name} </h3><br>
+        html: `<h3>Hi ${emailAndVoterID[0].first_name} </h3><br>
                     <p>Your account has been approved<h4><br>Your Voter ID is: ${emailAndVoterID[0].voter_id}, You can now login and Vote.</b></h4></p>`,
       };
       break;
@@ -679,7 +899,7 @@ function sendEmail(emailAndVoterID, decision) {
         from: "voupdates@yahoo.com",
         to: emailAndVoterID[0].email,
         subject: "Your account has not been approved",
-        html: `<h3>Hi ${emailAndVoterID[0].name} </h3><br>
+        html: `<h3>Hi ${emailAndVoterID[0].first_name} </h3><br>
                     <p>Unfortunately, your account has not been approved. Please contact support for more information.</p>`,
       };
       break;
