@@ -31,6 +31,15 @@
             <li class="nav-item">
                 <a class="nav-link" id="all-tab" data-toggle="tab" href="#allUsers" role="tab" aria-controls="allUsers" aria-selected="false">All Users</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="candidates-tab" data-toggle="tab" href="#candidates" role="tab" aria-controls="candidates" aria-selected="false">Candidates</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="precincts-tab" data-toggle="tab" href="#precincts" role="tab" aria-controls="precincts" aria-selected="false">Precincts</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="polls-tab" data-toggle="tab" href="#polls" role="tab" aria-controls="polls" aria-selected="false">Polls</a>
+            </li>
         </ul>
 
         <div class="tab-content" id="userTabContent">
@@ -116,6 +125,102 @@
                                         <button class="btn btn-danger delete-btn" data-voter-id="<%= user.voter_id %>">Delete</button>                                    </td>
                                 </tr>
                             <% } %>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="candidates" role="tabpanel" aria-labelledby="candidates-tab">
+                <!-- Candidates Table -->
+                <table class="table table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th scope="col">Candidate ID</th>
+                            <th scope="col">Poll ID</th>
+                            <th scope="col">First Name</th>
+                            <th scope="col">Last Name</th>
+                            <th scope="col">Party</th>
+                            <th scope="col">Office</th>
+                            <th scope="col">Vote Count</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% candidates.forEach(candidate => { %>
+                            <tr>
+                                <td><%= candidate.c_id %></td>
+                                <td><%= candidate.poll_id %></td>
+                                <td><%= candidate.first_name %></td>
+                                <td><%= candidate.last_name %></td>
+                                <td><%= candidate.party %></td>
+                                <td><%= candidate.office %></td>
+                                <td><%= candidate.vote_count %></td>
+                                <td>
+                                    <a href="/editCandidate/<%= candidate.c_id %>" class="btn btn-primary">Edit</a>
+                                    <a href="/deleteCandidate/<%= candidate.c_id %>" onclick="return confirm('Are you sure you want to delete this candidate?');" class="btn btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Precincts Tab Pane -->
+            <div class="tab-pane fade" id="precincts" role="tabpanel" aria-labelledby="precincts-tab">
+                <!-- Precincts Table -->
+                <table class="table table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th scope="col">Poll ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Zipcode</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% precincts.forEach(precinct => { %>
+                            <tr>
+                                <td><%= precinct.poll_id %></td>
+                                <td><%= precinct.name %></td>
+                                <td><%= precinct.address %></td>
+                                <td><%= precinct.zipcode %></td>
+                                <td>
+                                    <a href="/editPrecinct/<%= precinct.poll_id %>" class="btn btn-primary">Edit</a>
+                                    <a href="/deletePrecinct/<%= precinct.poll_id %>" onclick="return confirm('Are you sure you want to delete this precinct?');" class="btn btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Polls Tab Pane -->
+            <div class="tab-pane fade" id="polls" role="tabpanel" aria-labelledby="polls-tab">
+                <!-- Polls Table -->
+                <table class="table table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th scope="col">Poll ID</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Poll Date</th>
+                            <th scope="col">Start Time</th>
+                            <th scope="col">End Time</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% polls.forEach(poll => { %>
+                            <tr>
+                                <td><%= poll.poll_id %></td>
+                                <td><%= poll.title %></td>
+                                <td><%= poll.formattedDate %></td>
+                                <td><%= poll.formattedStartTime %></td>
+                                <td><%= poll.formattedEndTime %></td>
+                                <td>
+                                    <a href="/editPoll/<%= poll.poll_id %>" class="btn btn-primary">Edit</a>
+                                    <a href="/deletePoll/<%= poll.poll_id %>" onclick="return confirm('Are you sure you want to delete this poll?');" class="btn btn-danger">Delete</a>
+                                </td>
+                            </tr>
                         <% }); %>
                     </tbody>
                 </table>

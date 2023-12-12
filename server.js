@@ -11,7 +11,7 @@ const { format } = require("date-fns");
 const nodemailer = require("nodemailer");
 const ExpressError = require("./utils/ExpressError");
 const catrchAsync = require("./utils/catrchAsync");
-//const crypto = require('crypto');
+const crypto = require('crypto');
 
 require("dotenv").config();
 const DB_HOST = process.env.DB_HOST;
@@ -190,32 +190,41 @@ app.post(
   })
 );
 
-app.get(
-  "/admin",
-  catrchAsync(async (req, res) => {
-    const users = await getTempUsersData();
+app.get("/admin", catrchAsync(async (req, res) => {
+  // Fetch the data for each category
+  const users = await getTempUsersData(); 
+  const candidates = await getCandidatesData(); 
+  const precincts = await getPrecinctsData(); 
+  const polls = await getPollsData(); 
 
-    // Fetch the user data from your database
-    // console.log("Inside admin");
-    // console.dir(req.session.user, {depth: null});
-    if (req.session.user != null) {
-      // fetch user data
-      const user_Details = req.session.user;
-      // verify user is admin
-      if (user_Details.role === "AD") {
-        // console.dir(users, { depth: null });
-        // console.log(`Result Length = ${users.length}`);
+    polls.forEach(poll => {
+      // Assuming poll.poll_date, poll.start_time, and poll.end_time are JavaScript Date objects
+      // If they are not, you should convert them to Date objects first
 
-        // Render the adminPannel view and pass the users data to it
-        res.render("adminPannel", { users: users });
-      } else {
-        res.render("403-error-page");
-      }
-    } else {
+      // Format poll date
+      const optionsDate = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      poll.formattedDate = poll.poll_date.toLocaleDateString('en-US', optionsDate);
+
+      // Format start and end time
+      const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true, timeZoneName: 'short' };
+      poll.formattedStartTime = poll.start_time.toLocaleTimeString('en-US', optionsTime);
+      poll.formattedEndTime = poll.end_time.toLocaleTimeString('en-US', optionsTime);
+  });
+
+  // Check if the user is logged in and has the admin role
+  if (req.session.user != null && req.session.user.role === "AD") {
+      // Render the adminPanel view and pass all data to it
+      res.render("adminPannel", { 
+          users: users,
+          candidates: candidates,
+          precincts: precincts,
+          polls: polls
+      });
+  } else {
+      // Render an error page if the user is not authorized
       res.render("403-error-page");
-    }
-  })
-);
+  }
+}));
 
 app.delete("/deleteUser/:voterId", (req, res) => {
   const voterId = req.params.voterId;
@@ -288,6 +297,48 @@ app.get("/logout", (req, res) => {
     //res.clearCookie('sid');
     res.redirect("/login");
   });
+});
+
+app.get('/deleteCandidate/:id', async (req, res) => {
+  const candidateId = req.params.id;
+  // Delete candidate from the database
+  // Handle the deletion logic here
+  res.redirect('/admin');
+});
+
+app.get('/editCandidate/:id', async (req, res) => {
+  const candidateId = req.params.id;
+  // Fetch candidate data from the database
+  const candidate = "SELECT * FROM candidates WHERE c_id = ?";
+  res.render('editCandidateForm', { candidate: candidate });
+});
+
+app.get('/editPrecinct/:id', async (req, res) => {
+  const precinctId = req.params.id;
+  // Fetch precinct data from the database
+  const precinct = "SELECT * FROM precincts WHERE poll_id = ?";
+  res.render('editPrecinctForm', { precinct: precinct });
+});
+
+app.get('/deletePrecinct/:id', async (req, res) => {
+  const precinctId = req.params.id;
+  // Delete precinct from the database
+  // Handle the deletion logic here
+  res.redirect('/admin');
+});
+
+app.get('/editPoll/:id', async (req, res) => {
+  const pollId = req.params.id;
+  // Fetch poll data from the database
+  const poll = /* fetch from database using pollId */
+  res.render('editPollForm', { poll: poll });
+});
+
+app.get('/deletePoll/:id', async (req, res) => {
+  const pollId = req.params.id;
+  // Delete poll from the database
+  // Handle the deletion logic here
+  res.redirect('/admin');
 });
 
 app.get("/editUserInfo/:voterId", async (req, res) => {
@@ -384,6 +435,7 @@ app.post("/forgot-password", async (req, res) => {
   const token = crypto.randomBytes(20).toString("hex");
   const expireTime = Date.now() + 3600000; // 1 hour from now
 
+
   // Update the database with the reset token and expiry time
   // You need to add these fields in your users table or create a separate table for tokens
   db.getConnection(async (err, connection) => {
@@ -414,6 +466,11 @@ app.post("/forgot-password", async (req, res) => {
         html: `<h3>Hi, </h3><br>
                        <p>You requested a password reset. Click <a href="${resetUrl}">here</a> to reset your password. This link will expire in 1 hour.</p>`,
       };
+
+          // Log email details to the console
+      console.log("Sending email to:", email);
+      console.log("Email subject:", mailOptions.subject);
+      console.log("Email content:", mailOptions.html);
 
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
@@ -813,6 +870,59 @@ function getTempUsersData() {
     });
   });
 }
+
+function getCandidatesData() {
+  return new Promise((resolve, reject) => {
+    db.getConnection((err, connection) => {
+      if (err) reject(err);
+
+      const sqlSearch = "SELECT * FROM candidates"; // Adjust the query according to your schema
+      const query = mysql.format(sqlSearch);
+
+      connection.query(query, (err, result) => {
+        connection.release();
+        if (err) reject(err);
+        resolve(result);
+      });
+    });
+  });
+}
+
+function getPrecinctsData() {
+  return new Promise((resolve, reject) => {
+    db.getConnection((err, connection) => {
+      if (err) reject(err);
+
+      const sqlSearch = "SELECT * FROM precincts"; // Adjust the query according to your schema
+      const query = mysql.format(sqlSearch);
+
+      connection.query(query, (err, result) => {
+        connection.release();
+        if (err) reject(err);
+        resolve(result);
+      });
+    });
+  });
+}
+
+function getPollsData() {
+  return new Promise((resolve, reject) => {
+    db.getConnection((err, connection) => {
+      if (err) reject(err);
+
+      const sqlSearch = "SELECT * FROM polls"; // Adjust the query according to your schema
+      const query = mysql.format(sqlSearch);
+
+      connection.query(query, (err, result) => {
+        connection.release();
+        if (err) reject(err);
+        resolve(result);
+      });
+    });
+  });
+}
+
+
 
 function approveOrDenyUserInDatabase(voter_id, status) {
   return new Promise(async (resolve, reject) => {
